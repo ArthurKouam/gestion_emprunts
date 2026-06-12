@@ -6,12 +6,20 @@ const useFetch = (url) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!url) {
+      setData([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const response = await fetch(url);
 
         if (!response.ok) {
-          throw new Error("Erreur lors du chargement");
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || "Erreur lors du chargement");
         }
 
         const result = await response.json();
@@ -27,7 +35,29 @@ const useFetch = (url) => {
     fetchData();
   }, [url]);
 
-  return { data, loading, error };
+  const refetch = async () => {
+    if (!url) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Erreur lors du chargement");
+      }
+
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { data, loading, error, refetch };
 };
 
 export default useFetch;

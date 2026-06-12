@@ -1,8 +1,15 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
-// Lire les équipements
-export const getEquipments = async () => {
-  const response = await fetch(`${API_URL}/equipments`);
+// Authentification
+export const loginUser = async (credentials) => {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(credentials),
+  });
+
   return await response.json();
 };
 
@@ -32,29 +39,17 @@ export const createLoan = async (loanData) => {
   return await response.json();
 };
 
-// Lire les demandes
-export const getLoans = async () => {
-  const response = await fetch(`${API_URL}/loans`);
-  return await response.json();
-};
-
 // Modifier le statut d'une demande
-export const updateLoanStatus = async (
-  loanId,
-  newStatus
-) => {
-  const response = await fetch(
-    `${API_URL}/loans/${loanId}/status`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status: newStatus,
-      }),
-    }
-  );
+export const updateLoanStatus = async (loanId, newStatus) => {
+  const response = await fetch(`${API_URL}/loans/${loanId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      status: newStatus,
+    }),
+  });
 
   return await response.json();
 };
