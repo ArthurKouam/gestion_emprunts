@@ -7,6 +7,7 @@ const seedData = async () => {
     const adminExists = await User.findOne({ email: adminEmail });
 
     if (!adminExists) {
+      // console.log("Création de l'administrateur par défaut...");
       const adminUser = new User({
         name: process.env.ADMIN_NAME || 'Labo Admin',
         email: adminEmail,
@@ -14,11 +15,12 @@ const seedData = async () => {
         role: 'Administrateur',
       });
       await adminUser.save();
+      // console.log("Administrateur créé avec succès.");
     }
 
     const equipmentCount = await Equipment.countDocuments();
     if (equipmentCount === 0) {
-      console.log('Seeding: No equipment found. Creating default inventory...');
+      // console.log('Seeding: No equipment found. Creating default inventory...');
       const defaultEquipment = [
         {
           name: 'Raspberry Pi 4 Model B',
@@ -49,7 +51,7 @@ const seedData = async () => {
       await Equipment.insertMany(defaultEquipment);
       console.log('SUCCESS: Default equipment inventory seeded successfully!');
     } else {
-      console.log('Seeding: Equipment inventory already has items.');
+      // console.log('Seeding: Equipment inventory already has items.');
     }
   } catch (error) {
     console.error(`Error seeding data: ${error.message}`);
