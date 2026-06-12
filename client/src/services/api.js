@@ -1,4 +1,4 @@
-const API_URL = "/api";
+export const API_URL = "/api";
 
 // Authentification
 export const loginUser = async (credentials) => {

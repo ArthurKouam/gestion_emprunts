@@ -42,7 +42,7 @@ export default function CreateLoan() {
 
       const result = await createLoan(payload);
 
-      if (!result.message) {
+      if (!result.loan) {
         throw new Error(result.message || 'Erreur lors de la création de la demande');
       }
 

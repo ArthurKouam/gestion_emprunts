@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import useFetch from '../hooks/useFetch';
 import { addEquipment } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function EquipmentList() {
+  const { user } = useAuth();
   const { data: equipments, loading, error, refetch } = useFetch('/api/equipments');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -69,24 +71,26 @@ export default function EquipmentList() {
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1>Liste des Équipements</h1>
-        <button 
-          onClick={() => {
-            setShowForm(!showForm);
-            setSubmitError(null);
-            setSubmitSuccess(false);
-          }}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '1rem'
-          }}
-        >
-          {showForm ? 'Annuler' : 'Ajouter un Équipement'}
-        </button>
+        {user && (
+          <button 
+            onClick={() => {
+              setShowForm(!showForm);
+              setSubmitError(null);
+              setSubmitSuccess(false);
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '1rem'
+            }}
+          >
+            {showForm ? 'Annuler' : 'Ajouter un Équipement'}
+          </button>
+        )}
       </div>
 
       {submitSuccess && (
@@ -95,7 +99,7 @@ export default function EquipmentList() {
         </div>
       )}
 
-      {showForm && (
+      {showForm && user && (
         <form onSubmit={handleSubmit} style={{
           backgroundColor: '#f8f9fa',
           padding: '1.5rem',
