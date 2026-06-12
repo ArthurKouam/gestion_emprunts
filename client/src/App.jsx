@@ -86,10 +86,10 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/about" element={<About />} />
           <Route path="/my-loans" element={<StudentLoans />} />
+          <Route path="/equipments" element={<EquipmentList />} />
           
           {/* Routes protégées */}
           <Route element={<PrivateRoute />}>
-            <Route path="/equipments" element={<EquipmentList />} />
             <Route path="/loans" element={<LoanList />} />
             <Route path="/loans/create" element={<CreateLoan />} />
           </Route>

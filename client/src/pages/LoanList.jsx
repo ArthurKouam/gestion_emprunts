@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import useFetch from '../hooks/useFetch';
-import { updateLoanStatus } from '../services/api';
+import { updateLoanStatus, API_URL } from '../services/api';
 
 export default function LoanList() {
   const { data: loans, loading, error, refetch } = useFetch('/api/loans');
