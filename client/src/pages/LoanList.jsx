@@ -19,11 +19,17 @@ export default function LoanList() {
 
   const handleUpdateStatus = async (loanId, newStatus) => {
     try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${API_URL}/loans/${loanId}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({ status: newStatus }),
       });
 

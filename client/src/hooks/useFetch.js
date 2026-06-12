@@ -15,7 +15,12 @@ const useFetch = (url) => {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(url);
+        const token = localStorage.getItem('token');
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        const response = await fetch(url, { headers });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -41,7 +46,12 @@ const useFetch = (url) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(url);
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(url, { headers });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

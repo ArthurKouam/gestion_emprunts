@@ -15,11 +15,17 @@ export const loginUser = async (credentials) => {
 
 // Ajouter un équipement
 export const addEquipment = async (equipmentData) => {
+  const token = localStorage.getItem('token');
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_URL}/equipments`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(equipmentData),
   });
 
@@ -41,11 +47,17 @@ export const createLoan = async (loanData) => {
 
 // Modifier le statut d'une demande
 export const updateLoanStatus = async (loanId, newStatus) => {
+  const token = localStorage.getItem('token');
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_URL}/loans/${loanId}/status`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       status: newStatus,
     }),
