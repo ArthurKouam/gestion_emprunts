@@ -7,7 +7,6 @@ const seedData = async () => {
     const adminExists = await User.findOne({ email: adminEmail });
 
     if (!adminExists) {
-      console.log('Seeding: No admin user found. Creating default admin...');
       const adminUser = new User({
         name: process.env.ADMIN_NAME || 'Labo Admin',
         email: adminEmail,
@@ -15,13 +14,6 @@ const seedData = async () => {
         role: 'Administrateur',
       });
       await adminUser.save();
-      /*console.log('----------------------------------------------------');
-      console.log('SUCCESS: Default Admin User Created!');
-      console.log(`Email: ${adminEmail}`);
-      console.log(`Password: ${process.env.ADMIN_PASSWORD || 'admin123'}`);
-      console.log('----------------------------------------------------');
-    */} else {
-      console.log('Seeding: Admin user already exists.');
     }
 
     const equipmentCount = await Equipment.countDocuments();
