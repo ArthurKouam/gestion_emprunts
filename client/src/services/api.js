@@ -2,7 +2,7 @@ const API_URL = "/api";
 
 // Authentification
 export const loginUser = async (credentials) => {
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const response = await fetch(`${API_URL}/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
