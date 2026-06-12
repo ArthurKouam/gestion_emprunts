@@ -15,12 +15,12 @@ const seedData = async () => {
         role: 'Administrateur',
       });
       await adminUser.save();
-      console.log('----------------------------------------------------');
+      /*console.log('----------------------------------------------------');
       console.log('SUCCESS: Default Admin User Created!');
       console.log(`Email: ${adminEmail}`);
       console.log(`Password: ${process.env.ADMIN_PASSWORD || 'admin123'}`);
       console.log('----------------------------------------------------');
-    } else {
+    */} else {
       console.log('Seeding: Admin user already exists.');
     }
 
