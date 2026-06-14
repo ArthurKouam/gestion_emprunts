@@ -3,10 +3,13 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import useFetch from '../hooks/useFetch';
 import { API_URL } from '../services/api';
 
+const statusOptions = ['Toutes', 'En attente', 'Approuve', 'Refuse', 'Termine'];
+
 export default function LoanList() {
   const { data: loans, loading, error, refetch } = useFetch('/api/loans');
   const [studentId, setStudentId] = useState('');
   const [showStudentForm, setShowStudentForm] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('Toutes');
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -59,9 +62,9 @@ export default function LoanList() {
     </div>
   );
 
-  const filteredLoans = studentId
-    ? loans?.filter(loan => loan.studentId === studentId)
-    : loans;
+  const filteredLoans = loans
+    ?.filter((loan) => statusFilter === 'Toutes' || loan.status === statusFilter)
+    .filter((loan) => !studentId || loan.studentId.includes(studentId));
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
@@ -69,20 +72,38 @@ export default function LoanList() {
         <div>
           <Breadcrumbs items={[{ to: '/', label: 'Accueil' }, { label: "Demandes d'emprunt" }]} />
         </div>
-        <button 
-          onClick={() => setShowStudentForm(!showStudentForm)}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: showStudentForm ? '#6c757d' : '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '1rem'
-          }}
-        >
-          {showStudentForm ? 'Annuler' : 'Filtrer par Étudiant'}
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <label htmlFor="statusFilter" style={{ fontSize: '0.95rem' }}>Filtrer par statut :</label>
+          <select
+            id="statusFilter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: '0.5rem 0.75rem',
+              borderRadius: '4px',
+              border: '1px solid #ced4da',
+              backgroundColor: 'white'
+            }}
+          >
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+          <button 
+            onClick={() => setShowStudentForm(!showStudentForm)}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: showStudentForm ? '#6c757d' : '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '1rem'
+            }}
+          >
+            {showStudentForm ? 'Annuler' : 'Filtrer par Étudiant'}
+          </button>
+        </div>
       </div>
 
       {showStudentForm && (
@@ -154,7 +175,7 @@ export default function LoanList() {
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {['En attente', 'Approuve', 'Refuse', 'Termine'].map(status => (
+                      {['Approuve', 'Refuse', 'Termine'].map(status => (
                         <button
                           key={status}
                           onClick={() => handleUpdateStatus(loan._id, status)}

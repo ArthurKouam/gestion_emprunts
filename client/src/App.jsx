@@ -43,7 +43,7 @@ function AppContent() {
       ) : (
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<EquipmentList />} />
+            <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/student" element={<StudentPortal />} />
             <Route path="/about" element={<About />} />
