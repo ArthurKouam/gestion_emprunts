@@ -6,13 +6,12 @@ const {
   getStudentLoans,
   updateLoanStatus,
 } = require('../controllers/loanController');
-const { protect } = require('../middleware/auth');
 
 router.route('/')
   .post(createLoan)
-  .get(protect, getLoans);
+  .get(getLoans);
 
-router.patch('/:id/status', protect, updateLoanStatus);
+router.patch('/:id/status', updateLoanStatus);
 
 router.get('/student/:studentId', getStudentLoans);
 router.get('/status/:studentId', getStudentLoans);

@@ -1,48 +1,41 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState } from 'react';
+import { AuthContext } from './auth-context';
 
-const AuthContext = createContext();
+const getStoredAuth = () => {
+  const storedUser = localStorage.getItem('user');
+  const storedToken = localStorage.getItem('token');
+
+  if (!storedUser || !storedToken) {
+    return { user: null, token: null };
+  }
+
+  try {
+    return { user: JSON.parse(storedUser), token: storedToken };
+  } catch {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    return { user: null, token: null };
+  }
+};
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-    
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-    }
-    setLoading(false);
-  }, []);
+  const [auth, setAuth] = useState(getStoredAuth);
 
   const login = (userData, authToken) => {
-    setUser(userData);
-    setToken(authToken);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', authToken);
+    setAuth({ user: userData, token: authToken });
   };
 
   const logout = () => {
-    setUser(null);
-    setToken(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    setAuth({ user: null, token: null });
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user: auth.user, token: auth.token, login, logout, loading: false }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

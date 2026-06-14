@@ -1,134 +1,90 @@
 import { useState } from 'react';
+import Breadcrumbs from '../components/Breadcrumbs';
 import useFetch from '../hooks/useFetch';
+
+const statusClass = {
+  'En attente': 'pending',
+  Approuve: 'approved',
+  Refuse: 'rejected',
+  Termine: 'done',
+};
+
+const statusLabel = {
+  'En attente': 'En attente',
+  Approuve: 'Approuvée',
+  Refuse: 'Refusée',
+  Termine: 'Terminée',
+};
 
 export default function StudentLoans() {
   const [studentId, setStudentId] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  
+  const [submittedId, setSubmittedId] = useState('');
   const { data: loans, loading, error } = useFetch(
-    submitted && studentId ? `/api/loans/student/${studentId}` : null
+    submittedId ? `/api/loans/student/${submittedId}` : null
   );
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'En attente': return '#ffc107';
-      case 'Approuve': return '#28a745';
-      case 'Refuse': return '#dc3545';
-      case 'Termine': return '#6c757d';
-      default: return '#6c757d';
-    }
+  const handleSearch = (event) => {
+    event.preventDefault();
+    setSubmittedId(studentId.trim());
   };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (studentId.trim()) {
-      setSubmitted(true);
-    }
-  };
-
-  if (loading) return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <p>Chargement de vos demandes d'emprunt...</p>
-    </div>
-  );
-
-  if (error) return (
-    <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>
-      <p>Erreur: {error}</p>
-    </div>
-  );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>Mes Demandes d'Emprunt</h1>
-      </div>
+    <>
+      <Breadcrumbs items={[{ to: '/student', label: 'Espace Étudiant' }, { label: 'Suivi des demandes' }]} />
 
-      <form onSubmit={handleSearch} style={{
-        backgroundColor: '#f8f9fa',
-        padding: '1.5rem',
-        borderRadius: '8px',
-        marginBottom: '2rem',
-        border: '1px solid #dee2e6'
-      }}>
-        <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Rechercher vos demandes</h2>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <input
-            type="text"
-            placeholder="Entrez votre matricule"
-            value={studentId}
-            onChange={(e) => setStudentId(e.target.value)}
-            required
-            style={{ flex: 1, padding: '0.5rem', border: '1px solid #ced4da', borderRadius: '4px' }}
-          />
-          <button
-            type="submit"
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '1rem'
-            }}
-          >
-            Rechercher
-          </button>
-        </div>
-      </form>
+      <section className="panel">
+        <div className="panel-body">
+          <form className="toolbar" onSubmit={handleSearch}>
+            <input
+              className="search-input"
+              type="text"
+              required
+              placeholder="Matricule etudiant"
+              value={studentId}
+              onChange={(event) => setStudentId(event.target.value)}
+            />
+            <button className="button" type="submit">Rechercher</button>
+          </form>
 
-      {submitted && studentId && (
-        <>
-          {loans && loans.length > 0 ? (
-            <div style={{ overflowX: 'auto' }}>
-              <h2 style={{ marginBottom: '1rem' }}>Demandes pour l'étudiant: {studentId}</h2>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f1f1f1' }}>
-                    <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Équipement</th>
-                    <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Date de Demande</th>
-                    <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loans.map((loan) => (
-                    <tr key={loan._id} style={{ borderBottom: '1px solid #dee2e6' }}>
-                      <td style={{ padding: '1rem' }}>
-                        {loan.equipmentId?.name || loan.equipmentId?._id || 'N/A'}
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        {new Date(loan.requestDate).toLocaleString('fr-FR')}
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{
-                          padding: '0.25rem 0.5rem',
-                          backgroundColor: getStatusColor(loan.status),
-                          color: 'white',
-                          borderRadius: '4px',
-                          fontSize: '0.875rem'
-                        }}>
-                          {loan.status}
-                        </span>
-                      </td>
+          {loading && submittedId && <p>Chargement des demandes...</p>}
+          {error && <div className="notice error">{error}</div>}
+
+          {!submittedId && <div className="empty-state">Aucune recherche lancee.</div>}
+
+          {submittedId && !loading && !error && (
+            loans?.length > 0 ? (
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Materiel</th>
+                      <th>Reference</th>
+                      <th>Date</th>
+                      <th>Statut</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6c757d' }}>
-              <p>Aucune demande d'emprunt trouvée pour l'étudiant: {studentId}</p>
-            </div>
+                  </thead>
+                  <tbody>
+                    {loans.map((loan) => (
+                      <tr key={loan._id}>
+                        <td>{loan.equipmentId?.name || 'Equipement supprime'}</td>
+                        <td>{loan.equipmentId?.referenceCode || '-'}</td>
+                        <td>{new Date(loan.requestDate).toLocaleString('fr-FR')}</td>
+                        <td>
+                          <span className={`status ${statusClass[loan.status] || 'done'}`}>
+                            {statusLabel[loan.status] || loan.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="empty-state">Aucune demande trouvee pour ce matricule.</div>
+            )
           )}
-        </>
-      )}
-
-      {!submitted && (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6c757d' }}>
-          <p>Entrez votre matricule pour voir vos demandes d'emprunt.</p>
         </div>
-      )}
-    </div>
+      </section>
+    </>
   );
 }

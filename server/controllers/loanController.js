@@ -64,7 +64,9 @@ const getStudentLoans = async (req, res) => {
   const { studentId } = req.params;
 
   try {
-    const loans = await Loan.find({ studentId }).populate('equipmentId').sort({ requestDate: -1 });
+    const loans = await Loan.find({
+      studentId: { $regex: new RegExp(`^${studentId.trim()}$`, 'i') }
+    }).populate('equipmentId').sort({ requestDate: -1 });
     res.json(loans);
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur lors de la récupération de vos demandes", error: error.message });

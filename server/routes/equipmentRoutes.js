@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getEquipments, createEquipment } = require('../controllers/equipmentController');
-const { protect } = require('../middleware/auth');
+const { getEquipments, createEquipment, deleteEquipment } = require('../controllers/equipmentController');
 
 router.route('/')
   .get(getEquipments)
-  .post(protect, createEquipment);
+  .post(createEquipment);
+
+router.route('/:id')
+  .delete(deleteEquipment);
 
 module.exports = router;

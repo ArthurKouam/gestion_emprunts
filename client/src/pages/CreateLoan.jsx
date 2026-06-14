@@ -1,201 +1,136 @@
-import { useState, useEffect } from 'react';
-import useFetch from '../hooks/useFetch';
+import { useMemo, useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { createLoan } from '../services/api';
+import useFetch from '../hooks/useFetch';
 
 export default function CreateLoan() {
-  const { data: equipments, loading: equipmentsLoading, error: equipmentsError } = useFetch('/api/equipments');
-  const [formData, setFormData] = useState({
-    studentId: '',
-    matricule: '',
-    equipmentId: '',
-    referenceCode: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [availableEquipments, setAvailableEquipments] = useState([]);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const requestedEquipmentId = searchParams.get('equipmentId') || location.state?.equipment?._id || '';
+  const { data: equipments, loading, error } = useFetch('/api/equipments');
+  const [studentId, setStudentId] = useState('');
+  const [message, setMessage] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (equipments) {
-      setAvailableEquipments(equipments.filter(e => e.status === 'En stock'));
+  const selectedEquipment = useMemo(() => {
+    if (!requestedEquipmentId) return null;
+    return (equipments || []).find((item) => item._id === requestedEquipmentId) || location.state?.equipment || null;
+  }, [equipments, location.state?.equipment, requestedEquipmentId]);
+
+  const availabilityMessage = useMemo(() => {
+    if (!requestedEquipmentId || loading) return null;
+    if (!selectedEquipment) {
+      return { type: 'error', text: "Cet equipement est introuvable. Choisissez un materiel depuis l'inventaire." };
     }
-  }, [equipments]);
+    if (selectedEquipment.status !== 'En stock') {
+      return { type: 'error', text: "Cet equipement n'est plus en stock." };
+    }
+    return null;
+  }, [loading, requestedEquipmentId, selectedEquipment]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitError(null);
-    setSubmitSuccess(false);
+    if (!selectedEquipment || selectedEquipment.status !== 'En stock') {
+      setMessage({ type: 'error', text: "Selectionnez un equipement disponible avant d'envoyer la demande." });
+      return;
+    }
+
+    setSubmitting(true);
+    setMessage(null);
 
     try {
-      const payload = {
-        studentId: formData.studentId || formData.matricule,
-        matricule: formData.matricule,
-        ...(formData.equipmentId && { equipmentId: formData.equipmentId }),
-        ...(formData.referenceCode && { referenceCode: formData.referenceCode })
-      };
-
-      const result = await createLoan(payload);
-
-      if (!result.loan) {
-        throw new Error(result.message || 'Erreur lors de la création de la demande');
-      }
-
-      setSubmitSuccess(true);
-      setFormData({
-        studentId: '',
-        matricule: '',
-        equipmentId: '',
-        referenceCode: ''
+      await createLoan({
+        studentId: studentId.trim(),
+        equipmentId: selectedEquipment._id,
       });
+      setStudentId('');
+      setMessage({ type: 'success', text: 'Demande creee avec succes. Elle est maintenant en attente de validation.' });
     } catch (err) {
-      setSubmitError(err.message);
+      setMessage({ type: 'error', text: err.message });
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
-  if (equipmentsLoading) return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <p>Chargement des équipements disponibles...</p>
-    </div>
-  );
+  if (loading) {
+    return <div className="panel empty-state">Verification du materiel selectionne...</div>;
+  }
 
-  if (equipmentsError) return (
-    <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>
-      <p>Erreur: {equipmentsError}</p>
-    </div>
-  );
+  if (error) {
+    return <div className="notice error">{error}</div>;
+  }
+
+  if (!requestedEquipmentId) {
+    return (
+      <section className="panel empty-state">
+        <Breadcrumbs items={[{ to: '/equipments', label: 'Inventaire' }, { label: "Demande d'emprunt" }]} />
+        <p>Choisissez d'abord un equipement en stock dans l'inventaire.</p>
+        <Link className="button" to="/equipments" style={{ marginTop: '1rem' }}>
+          Voir l'inventaire
+        </Link>
+      </section>
+    );
+  }
+
+  const canSubmit = selectedEquipment?.status === 'En stock' && !submitting;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>Créer une Demande d'Emprunt</h1>
-      </div>
+    <>
+      <Breadcrumbs items={[{ to: '/equipments', label: 'Inventaire' }, { label: 'Demande d\'emprunt' }]} />
 
-      {submitSuccess && (
-        <div style={{ padding: '1rem', backgroundColor: '#d4edda', color: '#155724', marginBottom: '1rem', borderRadius: '4px' }}>
-          Demande de prêt créée avec succès !
+      <section className="panel">
+        <div className="panel-header">
+          <h2>Materiel selectionne</h2>
         </div>
-      )}
-
-      {submitError && (
-        <div style={{ padding: '1rem', backgroundColor: '#f8d7da', color: '#721c24', marginBottom: '1rem', borderRadius: '4px' }}>
-          {submitError}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} style={{
-        backgroundColor: '#f8f9fa',
-        padding: '1.5rem',
-        borderRadius: '8px',
-        border: '1px solid #dee2e6'
-      }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="matricule" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-            Matricule de l'Étudiant *
-          </label>
-          <input
-            type="text"
-            id="matricule"
-            name="matricule"
-            value={formData.matricule}
-            onChange={handleInputChange}
-            required
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid #ced4da', borderRadius: '4px' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-            Équipement *
-          </label>
-          <div style={{ marginBottom: '0.5rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <input
-                type="radio"
-                name="equipmentType"
-                value="reference"
-                checked={!formData.equipmentId}
-                onChange={() => setFormData(prev => ({ ...prev, equipmentId: '' }))}
-              />
-              Par code de référence
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <input
-                type="radio"
-                name="equipmentType"
-                value="list"
-                checked={!!formData.equipmentId}
-                onChange={() => setFormData(prev => ({ ...prev, referenceCode: '' }))}
-              />
-              Sélectionner depuis la liste
-            </label>
-          </div>
-
-          {formData.equipmentId ? (
-            <select
-              id="equipmentId"
-              name="equipmentId"
-              value={formData.equipmentId}
-              onChange={handleInputChange}
-              required
-              style={{ width: '100%', padding: '0.5rem', border: '1px solid #ced4da', borderRadius: '4px' }}
-            >
-              <option value="">Sélectionnez un équipement</option>
-              {availableEquipments.map(equip => (
-                <option key={equip._id} value={equip._id}>
-                  {equip.name} ({equip.referenceCode}) - {equip.category}
-                </option>
-              ))}
-            </select>
+        <div className="panel-body">
+          {selectedEquipment ? (
+            <>
+              <h3 style={{ marginTop: 0 }}>{selectedEquipment.name}</h3>
+              <p className="meta">
+                {selectedEquipment.category} | {selectedEquipment.referenceCode} | {selectedEquipment.status}
+              </p>
+            </>
           ) : (
-            <select
-              id="referenceCode"
-              name="referenceCode"
-              value={formData.referenceCode}
-              onChange={handleInputChange}
-              required
-              style={{ width: '100%', padding: '0.5rem', border: '1px solid #ced4da', borderRadius: '4px' }}
-            >
-              <option value="">Sélectionnez un code de référence</option>
-              {availableEquipments.map(equip => (
-                <option key={equip._id} value={equip.referenceCode}>
-                  {equip.referenceCode} - {equip.name}
-                </option>
-              ))}
-            </select>
+            <p>Materiel introuvable.</p>
           )}
         </div>
+      </section>
 
-        {availableEquipments.length === 0 && (
-          <div style={{ padding: '1rem', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '4px', marginBottom: '1rem' }}>
-            Aucun équipement disponible en stock pour l'emprunt.
-          </div>
-        )}
+      <section className="panel" style={{ marginTop: '1rem' }}>
+        <div className="panel-body">
+          {(message || availabilityMessage) && (
+            <div className={`notice ${(message || availabilityMessage).type}`}>
+              {(message || availabilityMessage).text}
+            </div>
+          )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting || availableEquipments.length === 0}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: isSubmitting || availableEquipments.length === 0 ? '#6c757d' : '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: (isSubmitting || availableEquipments.length === 0) ? 'not-allowed' : 'pointer',
-            fontSize: '1rem',
-            marginTop: '1rem'
-          }}
-        >
-          {isSubmitting ? 'Envoi en cours...' : 'Créer la Demande'}
-        </button>
-      </form>
-    </div>
+          <form className="form-grid form-vertical" onSubmit={handleSubmit}>
+            <div className="form-group full-span">
+              <label htmlFor="studentId">Matricule etudiant</label>
+              <input
+                className="form-control"
+                id="studentId"
+                type="text"
+                required
+                value={studentId}
+                onChange={(event) => setStudentId(event.target.value)}
+                disabled={!canSubmit}
+                placeholder="Ex: 23INF042"
+              />
+            </div>
+            <div className="actions full-span" style={{ justifyContent: 'flex-start' }}>
+              <button className="button" type="submit" disabled={!canSubmit}>
+                {submitting ? 'Envoi...' : 'Envoyer la demande'}
+              </button>
+              <Link className="button secondary" to="/equipments">
+                Choisir un autre materiel
+              </Link>
+            </div>
+          </form>
+        </div>
+      </section>
+    </>
   );
 }

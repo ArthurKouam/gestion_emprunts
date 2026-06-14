@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import Breadcrumbs from '../components/Breadcrumbs';
 import useFetch from '../hooks/useFetch';
-import { updateLoanStatus, API_URL } from '../services/api';
+import { API_URL } from '../services/api';
 
 export default function LoanList() {
   const { data: loans, loading, error, refetch } = useFetch('/api/loans');
@@ -65,7 +66,9 @@ export default function LoanList() {
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>Liste des Demandes d'Emprunt</h1>
+        <div>
+          <Breadcrumbs items={[{ to: '/', label: 'Accueil' }, { label: "Demandes d'emprunt" }]} />
+        </div>
         <button 
           onClick={() => setShowStudentForm(!showStudentForm)}
           style={{

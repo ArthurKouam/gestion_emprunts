@@ -56,7 +56,35 @@ const createEquipment = async (req, res) => {
   }
 };
 
+const deleteEquipment = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const equipment = await Equipment.findById(id);
+    if (!equipment) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Équipement introuvable.'
+      });
+    }
+
+    await Equipment.findByIdAndDelete(id);
+    res.json({
+      status: 'success',
+      message: 'Équipement retiré avec succès de la base de données.'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Erreur serveur lors du retrait de l\'équipement',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getEquipments,
   createEquipment,
+  deleteEquipment,
 };
+

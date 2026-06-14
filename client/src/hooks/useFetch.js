@@ -2,19 +2,18 @@ import { useEffect, useState } from "react";
 
 const useFetch = (url) => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(url));
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!url) {
-      setData([]);
-      setLoading(false);
-      setError(null);
       return;
     }
 
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const token = localStorage.getItem('token');
         const headers = {};
         if (token) {
@@ -67,7 +66,7 @@ const useFetch = (url) => {
     }
   };
 
-  return { data, loading, error, refetch };
+  return { data: url ? data : [], loading: url ? loading : false, error: url ? error : null, refetch };
 };
 
 export default useFetch;
