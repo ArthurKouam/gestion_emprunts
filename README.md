@@ -90,9 +90,6 @@ gestion_emprunts/
 │   │
 │   └── utils/                         # Utilitaires
 │       └── seeder.js                  # Script de peuplement de la BD
-│
-└── scripts/                           # Scripts utilitaires
-    └── dev.mjs                        # Script pour démarrer l'env. de dev
 ```
 
 ## Installation
